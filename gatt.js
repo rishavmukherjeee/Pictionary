@@ -5,36 +5,39 @@ import { ColorPicker } from 'react-native-color-picker';
 
 export default function PaintApp() {
   const [color, setColor] = useState('#000000');
-  const [path, setPath] = useState('');
   const [savedPaths, setSavedPaths] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const svgRef = useRef(null);
-  const [showColorPicker, setShowColorPicker] = useState(false);
-
-  const toggleColorPicker = () => {
-    setShowColorPicker(!showColorPicker);
-  };
 
   const handlePress = (event) => {
     setIsDrawing(true);
-    setPath(`M${event.nativeEvent.locationX},${event.nativeEvent.locationY}`);
+    const { locationX, locationY } = event.nativeEvent;
+    svgRef.current && svgRef.current.setNativeProps({ d: `M${locationX},${locationY}` });
   };
 
   const handleMove = (event) => {
     if (isDrawing) {
-      setPath(`${path} L${event.nativeEvent.locationX},${event.nativeEvent.locationY}`);
+      const { locationX, locationY } = event.nativeEvent;
+      svgRef.current && svgRef.current.setNativeProps({ d: `${svgRef.current.props.d} L${locationX},${locationY}` });
     }
   };
 
   const handleRelease = () => {
     setIsDrawing(false);
-    if (path) {
-      setSavedPaths([...savedPaths, path]);
-      setPath('');
+    if (svgRef.current && svgRef.current.props.d) {
+      setSavedPaths([...savedPaths, svgRef.current.props.d]);
+      svgRef.current.setNativeProps({ d: '' });
     }
   };
+
   const handleClear = () => {
     setSavedPaths([]);
+    svgRef.current.setNativeProps({ d: '' });
+  };
+
+  const handleColorChange = (newColor) => {
+    setColor(newColor);
+    svgRef.current.setNativeProps({ d: '' });
   };
 
   return (
@@ -44,30 +47,21 @@ export default function PaintApp() {
           ref={svgRef}
           width="100%"
           height="100%"
-          onTouchStart={handlePress}
-          onTouchMove={handleMove}
-          onTouchEnd={handleRelease}
-        >
-          {savedPaths.map((p, i) => (
-            <Path key={i} d={p} stroke={color} strokeWidth="5" fill="none" />
-          ))}
-          <Path d={path} stroke={color} strokeWidth="5" fill="none" />
-        </Svg>
+          stroke={color}
+          strokeWidth="5"
+          fill="none"
+        />
+        <ColorPicker
+          onColorChange={handleColorChange}
+          color={color}
+          style={styles.colors}
+        />
       </View>
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={[styles.button, { backgroundColor: color }]} onPress={toggleColorPicker}>
-          <Text style={styles.buttonText}>Pick a color</Text>
-        </TouchableOpacity>
         <TouchableOpacity style={[styles.button, { backgroundColor: 'red' }]} onPress={handleClear}>
           <Text style={styles.buttonText}>Clear</Text>
         </TouchableOpacity>
       </View>
-      {showColorPicker && (
-        <ColorPicker
-          onColorSelected={(color) => setColor(color)}
-          style={{ height: 200, width: 200 }}
-        />
-      )}
     </View>
   );
 }
@@ -86,6 +80,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  colors: {
+    height: 150,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+  },
   buttonContainer: {
     flexDirection: 'row',
     marginTop: 20,
@@ -100,5 +100,5 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
-  }
+  },
 });
