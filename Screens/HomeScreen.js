@@ -3,7 +3,6 @@ import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
 import PaintApp from './PaintApp';
 export default function HomeScreen({ navigation }) {
 
-  // Define function to handle Start Game button press
   const handleStartGame = () => {
     navigation.navigate('PaintApp');
   }
