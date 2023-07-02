@@ -2,9 +2,10 @@ import React, { useState, useRef } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 import { ColorPicker } from 'react-native-color-picker';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from 'react-native-vector-icons/Ionicons';
 
-export default function PaintApp() {
+
+const PaintApp=()=> {
   const [color, setColor] = useState('#000000');
   const [path, setPath] = useState('');
   const [savedPaths, setSavedPaths] = useState([]);
@@ -160,3 +161,4 @@ const styles = StyleSheet.create({
     height: 220,
   },
 });
+export default PaintApp;

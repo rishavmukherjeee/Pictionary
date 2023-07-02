@@ -1,7 +1,6 @@
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import PaintApp from './PaintApp';
-export default function HomeScreen({ navigation }) {
+const HomeScreen=({ navigation })=> {
 
   const handleStartGame = () => {
     navigation.navigate('PaintApp');
@@ -35,7 +34,7 @@ export default function HomeScreen({ navigation }) {
     </View>
   );
 }
-
+export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,

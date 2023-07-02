@@ -1,7 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import { Svg, Path } from 'react-native-svg';
-
 export default function PaintApp() {
   const [path, setPath] = useState([]);
  
