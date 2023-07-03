@@ -1,16 +1,32 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
-import Ionicons from 'react-native-vector-icons/Ionicons';
 import ColorPicker from './ColorPicker';
+import { io } from 'socket.io-client';
 
-const PaintApp=()=> {
+const PaintApp = () => {
   const [color, setColor] = useState('#000000');
   const [path, setPath] = useState('');
   const [savedPaths, setSavedPaths] = useState([]);
   const [isDrawing, setIsDrawing] = useState(false);
   const svgRef = useRef(null);
   const [eraserMode, setEraserMode] = useState(false);
+  const socket = useRef(null);
+
+  useEffect(() => {
+    // Connect to the Socket.IO server
+    socket.current = io('https://pictionary-sigma.vercel.app/');
+
+    // Listen for 'dataUpdated' event from the server
+    socket.current.on('dataUpdated', (updatedData) => {
+      setSavedPaths(updatedData);
+    });
+
+    // Clean up the socket connection on component unmount
+    return () => {
+      socket.current.disconnect();
+    };
+  }, []);
 
   const colo = (color) => {
     setColor(color);
@@ -30,19 +46,30 @@ const PaintApp=()=> {
   const handleRelease = () => {
     setIsDrawing(false);
     if (path) {
-      setSavedPaths([...savedPaths, { path, color, eraserMode }]);
+      const updatedPaths = [...savedPaths, { path, color, eraserMode }];
+      setSavedPaths(updatedPaths);
+
+      // Emit 'dataUpdate' event to the server with the updated paths
+      socket.current.emit('dataUpdate', updatedPaths);
+
       setPath('');
     }
   };
 
   const handleClear = () => {
     setSavedPaths([]);
+
+    // Emit 'dataUpdate' event to the server with an empty array to clear the paths
+    socket.current.emit('dataUpdate', []);
   };
 
   const handleUndo = () => {
     const newSavedPaths = [...savedPaths];
     newSavedPaths.pop();
     setSavedPaths(newSavedPaths);
+
+    // Emit 'dataUpdate' event to the server with the updated paths
+    socket.current.emit('dataUpdate', newSavedPaths);
   };
 
   const handleToggleEraserMode = () => {
@@ -74,40 +101,26 @@ const PaintApp=()=> {
         </Svg>
       </View>
       <View style={styles.buttonContainer}>
-       
-          <>
-          <ColorPicker onSelectColor={colo} />
-
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: 'red' }]}
-              onPress={handleClear}
-            >
-              <Text style={styles.buttonText}>Clear</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.button, { backgroundColor: '#333' }]}
-              onPress={handleUndo}
-            >
-              <Text style={styles.buttonText}>Undo</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[
-                styles.button,
-                { backgroundColor: eraserMode ? '#ccc' : '#fff' },
-        ]}
-        onPress={handleToggleEraserMode}
-      >
-        <Text style={styles.ebuttonText}>
-          {eraserMode ? 'Pen' : 'Eraser'}
-        </Text>
-      </TouchableOpacity>
-    </>
-    
-</View>
-
-</View>
-);
-}
+        <ColorPicker onSelectColor={colo} />
+        <TouchableOpacity style={[styles.button, { backgroundColor: 'red' }]} onPress={handleClear}>
+          <Text style={styles.buttonText}>Clear</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, { backgroundColor: '#333' }]} onPress={handleUndo}>
+          <Text style={styles.buttonText}>Undo</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[
+            styles.button,
+            { backgroundColor: eraserMode ? '#ccc' : '#fff' },
+          ]}
+          onPress={handleToggleEraserMode}
+        >
+          <Text style={styles.ebuttonText}>{eraserMode ? 'Pen' : 'Eraser'}</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -134,7 +147,7 @@ const styles = StyleSheet.create({
   button: {
     width: 50,
     height: 40,
-    paddingVertical:'auto',
+    paddingVertical: 'auto',
     borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
@@ -157,4 +170,5 @@ const styles = StyleSheet.create({
     height: 220,
   },
 });
+
 export default PaintApp;
