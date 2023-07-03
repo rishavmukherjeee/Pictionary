@@ -14,7 +14,6 @@ const PaintApp=()=> {
 
   const colo = (color) => {
     setColor(color);
-    // Do something with the selected color
   };
 
   const handlePress = (event) => {
@@ -94,11 +93,11 @@ const PaintApp=()=> {
             <TouchableOpacity
               style={[
                 styles.button,
-                { backgroundColor: eraserMode ? '#ccc' : '#000' },
+                { backgroundColor: eraserMode ? '#ccc' : '#fff' },
         ]}
         onPress={handleToggleEraserMode}
       >
-        <Text style={styles.buttonText}>
+        <Text style={styles.ebuttonText}>
           {eraserMode ? 'Pen' : 'Eraser'}
         </Text>
       </TouchableOpacity>
@@ -144,6 +143,10 @@ const styles = StyleSheet.create({
   },
   buttonText: {
     color: '#fff',
+    fontWeight: 'bold',
+  },
+  ebuttonText: {
+    color: '#000',
     fontWeight: 'bold',
   },
   colorPicker: {
